@@ -9,16 +9,17 @@ class GeminiService
 {
     protected $apiKey;
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
+    protected $model = 'gemini-1.5-flash';
 
     public function __construct()
     {
-        $this->apiKey = get_setting('gemini_api_key');
+        $this->apiKey = get_setting('gemini_api_key') ?: env('GEMINI_API_KEY');
     }
 
     public function generateContent($prompt)
     {
         try {
-            $response = Http::post("{$this->baseUrl}/gemini-pro:generateContent?key={$this->apiKey}", [
+            $response = Http::timeout(30)->post("{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
