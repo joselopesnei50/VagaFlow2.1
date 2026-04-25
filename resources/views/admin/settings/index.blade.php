@@ -96,9 +96,32 @@
                         <!-- Brevo (E-mails Transacionais) -->
                         <div class="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-[2rem] border border-gray-100 dark:border-gray-700">
                             <h3 class="text-xs font-black mb-6 uppercase tracking-widest text-teal-600">Brevo (E-mails)</h3>
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Brevo API Key</label>
-                            <input type="password" name="brevo_api_key" value="{{ $settings['brevo_api_key'] ?? '' }}" 
-                                class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-teal-500 shadow-inner">
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Brevo API Key</label>
+                                    <input type="password" name="brevo_api_key" value="{{ $settings['brevo_api_key'] ?? '' }}"
+                                        class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-teal-500 shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">E-mail Remetente (verificado no Brevo)</label>
+                                    <input type="email" name="brevo_sender_email" value="{{ $settings['brevo_sender_email'] ?? '' }}" placeholder="noreply@seudominio.com"
+                                        class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-teal-500 shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nome Remetente</label>
+                                    <input type="text" name="brevo_sender_name" value="{{ $settings['brevo_sender_name'] ?? 'JobBot AI' }}" placeholder="JobBot AI"
+                                        class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-teal-500 shadow-inner">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Evolution — Instância do Sistema -->
+                        <div class="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-[2rem] border border-gray-100 dark:border-gray-700">
+                            <h3 class="text-xs font-black mb-6 uppercase tracking-widest text-green-600">WhatsApp — Instância do Sistema</h3>
+                            <p class="text-[10px] text-gray-400 mb-6 leading-relaxed">A instância <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">jobbot_system</code> deve estar criada e conectada no seu Evolution API. É o número que envia os pitches para os usuários.</p>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Número do WhatsApp da Instância (somente números)</label>
+                            <input type="text" name="system_whatsapp_number" value="{{ $settings['system_whatsapp_number'] ?? '' }}" placeholder="5511999999999"
+                                class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-green-500 shadow-inner">
                         </div>
 
                         <!-- Legal Pages -->

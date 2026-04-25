@@ -71,11 +71,13 @@ class CvController extends Controller
         }
 
         $companyData = [
-            'name' => $request->company_name ?? 'Empresa Global S.A.',
-            'title' => $request->title ?? 'Vaga Estratégica',
-            'description' => $request->description ?? 'Requisitos da vaga...',
-            'email' => $request->email ?? 'contato@empresa.com',
-            'phone' => $request->phone ?? '5511999999999',
+            'name'         => $request->company_name ?? 'Empresa',
+            'company_name' => $request->company_name ?? 'Empresa',
+            'title'        => $request->title ?? 'Vaga',
+            'description'  => $request->description ?? '',
+            'location'     => $request->location ?? 'Brasil',
+            'via'          => $request->via ?? 'Web',
+            'job_url'      => $request->job_url ?? null,
         ];
 
         $analysis = $this->automation->generatePreview($user, $companyData);
@@ -102,9 +104,13 @@ class CvController extends Controller
         ]);
 
         $companyData = [
-            'name' => $request->company_name,
-            'email' => $request->email ?? 'contato@empresa.com',
-            'phone' => $request->phone ?? '5511999999999',
+            'name'         => $request->company_name,
+            'title'        => $request->title ?? '',
+            'company_name' => $request->company_name,
+            'location'     => $request->location ?? 'Brasil',
+            'via'          => $request->via ?? 'Web',
+            'description'  => $request->description ?? '',
+            'job_url'      => $request->job_url ?? null,
         ];
 
         $aiData = [

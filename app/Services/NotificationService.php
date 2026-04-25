@@ -11,69 +11,120 @@ class NotificationService
     protected $evolution;
     protected $brevo;
 
+    // Nome da instância Evolution API do sistema (configurada no admin)
+    const SYSTEM_INSTANCE = 'jobbot_system';
+
     public function __construct()
     {
         $this->evolution = new EvolutionApiService();
-        $this->brevo = new BrevoService();
+        $this->brevo     = new BrevoService();
     }
 
     /**
-     * Notify user via WhatsApp that a new application was sent
+     * Entrega o pitch pronto para o USUÁRIO aplicar na vaga.
+     * WhatsApp: mensagem formatada + link da vaga + CV (se tiver).
+     * Email: modelo de candidatura pronto para copiar.
+     */
+    public function sendJobAlertToUser(User $user, array $jobData, array $aiData)
+    {
+        $whatsapp = $user->profile->whatsapp_number ?? null;
+        $jobUrl   = $jobData['job_url'] ?? null;
+        $cvUrl    = $user->profile->cv_path
+                        ? asset('storage/' . $user->profile->cv_path)
+                        : null;
+
+        // ── WhatsApp ──────────────────────────────────────────────────────────
+        if ($whatsapp) {
+            $msg  = "🎯 *JobBot AI — Nova Vaga Encontrada!*\n\n";
+            $msg .= "*{$jobData['title']}* — {$jobData['company_name']}\n";
+            $msg .= "📍 {$jobData['location']}  |  via {$jobData['via']}\n\n";
+            $msg .= "───────────────────────\n";
+            $msg .= "💬 *Seu Pitch (pronto para enviar):*\n\n";
+            $msg .= $aiData['pitch'] . "\n\n";
+            $msg .= "───────────────────────\n";
+            $msg .= "🧠 *Estratégia da IA:* {$aiData['strategy']}\n";
+            $msg .= "📊 *Compatibilidade:* {$aiData['match']}%\n\n";
+
+            if ($jobUrl) {
+                $msg .= "🔗 *Aplicar na vaga:*\n{$jobUrl}\n\n";
+            }
+
+            $msg .= "_Copie o pitch acima e envie para o recrutador ao aplicar!_";
+
+            $this->evolution->sendMessage(self::SYSTEM_INSTANCE, $whatsapp, $msg);
+
+            // Envia o CV em PDF logo depois, se existir
+            if ($cvUrl) {
+                $this->evolution->sendMedia(
+                    self::SYSTEM_INSTANCE,
+                    $whatsapp,
+                    $cvUrl,
+                    'Seu Currículo — pronto para anexar na candidatura',
+                    'curriculo.pdf'
+                );
+            }
+        }
+
+        // ── Email ─────────────────────────────────────────────────────────────
+        $this->brevo->sendJobAlertEmail($user, $jobData, $aiData);
+    }
+
+    /**
+     * Notifica o usuário quando uma candidatura foi registrada (autopilot).
      */
     public function notifyApplicationSent(Application $application)
     {
-        $user = $application->user;
+        $user     = $application->user;
         $whatsapp = $user->profile->whatsapp_number ?? null;
 
         if (!$whatsapp) return;
 
-        $message = "🚀 *JobBot AI: Candidatura Enviada!*\n\n";
-        $message .= "Acabamos de enviar sua apresentação para a empresa *{$application->company_name}*.\n";
-        $message .= "📊 *Match Score:* {$application->match_score}%\n";
-        $message .= "💡 *Estratégia:* {$application->strategy_note}\n\n";
-        $message .= "Acompanhe tudo no seu painel: " . route('dashboard');
+        $msg  = "✅ *JobBot AI: Candidatura Registrada!*\n\n";
+        $msg .= "Empresa: *{$application->company_name}*\n";
+        $msg .= "📊 Match: {$application->match_score}%\n";
+        $msg .= "💡 Estratégia: {$application->strategy_note}\n\n";
+        $msg .= "Acompanhe no painel: " . route('dashboard');
 
-        // Note: We use a global admin instance to notify the user, 
-        // OR the user's own instance if it's connected.
-        $instance = 'admin_inst'; // Fallback to system instance
-        $this->evolution->sendMessage($instance, $whatsapp, $message);
+        $this->evolution->sendMessage(self::SYSTEM_INSTANCE, $whatsapp, $msg);
     }
 
     /**
-     * Notify user about payment confirmation
+     * Notifica o usuário após confirmação de pagamento.
      */
     public function notifyPaymentConfirmed(User $user, $amount)
     {
-        // 1. WhatsApp
         if ($user->profile && $user->profile->whatsapp_number) {
-            $message = "✅ *Pagamento Confirmado!*\n\n";
-            $message .= "Olá {$user->name}, seu pagamento de R$ " . number_format($amount, 2, ',', '.') . " foi aprovado.\n";
-            $message .= "Sua conta agora é *PREMIUM* e adicionamos *100 créditos* de bônus para você!\n\n";
-            $message .= "Boas candidaturas!";
-            
-            $this->evolution->sendMessage('admin_inst', $user->profile->whatsapp_number, $message);
+            $valor = number_format($amount, 2, ',', '.');
+            $msg   = "✅ *Pagamento Confirmado!*\n\n";
+            $msg  .= "Olá {$user->name}, seu pagamento de R$ {$valor} foi aprovado.\n";
+            $msg  .= "Sua conta agora é *PREMIUM* com créditos adicionados!\n\n";
+            $msg  .= "Acesse o painel e ative o Piloto Automático:\n" . route('dashboard');
+
+            $this->evolution->sendMessage(self::SYSTEM_INSTANCE, $user->profile->whatsapp_number, $msg);
         }
 
-        // 2. Email
         $this->brevo->sendEmail(
             $user->email,
             $user->name,
-            "Pagamento Confirmado - JobBot AI Premium",
-            "<h1>Parabéns, {$user->name}!</h1><p>Seu pagamento foi confirmado e sua conta Premium está ativa. Você recebeu 100 créditos adicionais.</p>"
+            'Pagamento Confirmado — JobBot AI Premium',
+            "<h2>Parabéns, {$user->name}!</h2>
+             <p>Seu pagamento foi confirmado e sua conta Premium está ativa.</p>
+             <p><a href='" . route('dashboard') . "'>Acessar o painel agora</a></p>"
         );
     }
 
     /**
-     * Notify user when a job hunt starts (Autopilot)
+     * Notifica o usuário quando o Piloto Automático é ativado.
      */
     public function notifyAutopilotStarted(User $user)
     {
         if ($user->profile && $user->profile->whatsapp_number) {
-            $message = "🤖 *Piloto Automático Ativado!*\n\n";
-            $message .= "Sua IA começou a varrer a internet em busca de vagas para *{$user->profile->target_role}*.\n";
-            $message .= "Você receberá notificações aqui conforme as candidaturas forem enviadas.";
-            
-            $this->evolution->sendMessage('admin_inst', $user->profile->whatsapp_number, $message);
+            $cargo = $user->profile->target_role ?? 'sua área';
+            $msg   = "🤖 *Piloto Automático Ativado!*\n\n";
+            $msg  .= "Sua IA começou a varrer a internet em busca de vagas para *{$cargo}*.\n\n";
+            $msg  .= "Você receberá aqui os pitches prontos para cada vaga encontrada. É só copiar e aplicar!";
+
+            $this->evolution->sendMessage(self::SYSTEM_INSTANCE, $user->profile->whatsapp_number, $msg);
         }
     }
 }

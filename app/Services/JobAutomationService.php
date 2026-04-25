@@ -9,96 +9,81 @@ use Illuminate\Support\Facades\Log;
 class JobAutomationService
 {
     protected $gemini;
-    protected $evolution;
-    protected $brevo;
     protected $notifier;
 
     public function __construct()
     {
-        $this->gemini = new GeminiService();
-        $this->evolution = new EvolutionApiService();
-        $this->brevo = new BrevoService();
+        $this->gemini   = new GeminiService();
         $this->notifier = new NotificationService();
     }
 
     /**
-     * Step 1: Generate AI Preview without sending
+     * Passo 1: Gera preview do pitch via IA sem salvar ou enviar.
      */
-    public function generatePreview(User $user, $companyData)
+    public function generatePreview(User $user, $jobData)
     {
         $profile = $user->profile;
-        
+
         $prompt = "
-            Aja como um recrutador especializado. 
-            Candidato: [{$profile->bio}].
-            Empresa Alvo: [{$companyData['name']}].
-            
-            Gere um JSON (apenas o objeto):
+            Você é um especialista em recrutamento e redação profissional.
+
+            Candidato: {$profile->bio}
+            Cargo desejado: {$profile->target_role}
+
+            Vaga encontrada:
+            - Título: {$jobData['title']}
+            - Empresa: {$jobData['company_name']}
+            - Localização: {$jobData['location']}
+            - Descrição: " . mb_substr($jobData['description'], 0, 500) . "
+
+            Gere APENAS o JSON abaixo (sem texto extra, sem markdown, sem blocos de código):
             {
-              \"pitch\": \"Mensagem profissional curta para WhatsApp (máximo 300 caracteres)\",
-              \"strategy\": \"Breve descrição do que foi enfatizado (máximo 15 palavras)\",
+              \"pitch\": \"Mensagem profissional e direta para WhatsApp (máximo 350 caracteres). Deve mencionar o cargo, uma conquista relevante do candidato e demonstrar interesse genuíno.\",
+              \"strategy\": \"O que foi destacado na mensagem (máximo 15 palavras)\",
               \"match\": 85
             }
         ";
-        
+
         $aiRawResponse = $this->gemini->generateContent($prompt);
 
         if (!$aiRawResponse) return null;
 
         try {
-            $jsonString = preg_replace('/```json|```/', '', $aiRawResponse);
-            return json_decode(trim($jsonString), true);
+            $clean = preg_replace('/```json|```/', '', $aiRawResponse);
+            $data  = json_decode(trim($clean), true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error("Gemini JSON parse error: " . json_last_error_msg() . " | Raw: " . $aiRawResponse);
+                return null;
+            }
+
+            return $data;
         } catch (\Exception $e) {
-            Log::error("JSON Parse Error: " . $e->getMessage());
+            Log::error("JobAutomationService generatePreview error: " . $e->getMessage());
             return null;
         }
     }
 
     /**
-     * Step 2: Save to DB and Send
+     * Passo 2: Registra a candidatura e entrega o pitch para o USUÁRIO
+     * via WhatsApp (Evolution API) e email (Brevo) — para que ele aplique.
      */
-    public function finalizeAndSend(User $user, $companyData, $aiData)
+    public function finalizeAndSend(User $user, $jobData, $aiData)
     {
-        $profile = $user->profile;
-
-        // 1. Create Application record
+        // 1. Registra no banco
         $application = Application::create([
-            'user_id' => $user->id,
-            'company_name' => $companyData['name'],
-            'contact_info' => $companyData['email'] ?? $companyData['phone'] ?? 'N/A',
-            'status' => 'pending',
-            'ai_message' => $aiData['pitch'],
-            'strategy_note' => $aiData['strategy'],
-            'match_score' => $aiData['match'],
+            'user_id'      => $user->id,
+            'company_name' => $jobData['company_name'],
+            'contact_info' => $jobData['job_url'] ?? $jobData['via'] ?? 'N/A',
+            'status'       => 'sent',
+            'ai_message'   => $aiData['pitch'],
+            'strategy_note'=> $aiData['strategy'],
+            'match_score'  => $aiData['match'],
+            'sent_at'      => now(),
         ]);
 
-        // 2. Send via WhatsApp
-        $messageId = null;
-        if (isset($companyData['phone'])) {
-            $instance = $user->name . '_inst'; 
-            $resp = $this->evolution->sendMessage($instance, $companyData['phone'], $aiData['pitch']);
-            $messageId = $resp['key']['id'] ?? null;
-
-            if ($profile->cv_path) {
-                $this->evolution->sendMedia($instance, $companyData['phone'], asset('storage/' . $profile->cv_path), 'Meu Currículo');
-            }
-        }
-
-        // 3. Send via Email
-        if (isset($companyData['email'])) {
-            $this->brevo->sendEmail($companyData['email'], $companyData['name'], "Candidatura: {$profile->target_role} - {$user->name}", $aiData['pitch']);
-        }
-
-        // 4. Update Status
-        $application->update([
-            'status' => 'sent',
-            'delivery_status' => 'sent',
-            'message_id' => $messageId,
-            'sent_at' => now(),
-        ]);
-
-        // Notificar o Usuário
-        $this->notifier->notifyApplicationSent($application);
+        // 2. Envia o pitch para o WhatsApp e email DO USUÁRIO
+        $this->notifier->sendJobAlertToUser($user, $jobData, $aiData);
 
         return true;
     }

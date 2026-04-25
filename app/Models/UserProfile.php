@@ -14,6 +14,8 @@ class UserProfile extends Model
         'target_role',
         'whatsapp_number',
         'cv_path',
+        'bio',
+        'auto_limit',
     ];
 
     public function user()

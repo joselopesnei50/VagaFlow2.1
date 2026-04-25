@@ -52,13 +52,14 @@ class JobScraperService
 
                 return array_map(function($job) {
                     return [
-                        'title' => $job['job_title'],
+                        'title'        => $job['job_title'],
                         'company_name' => $job['employer_name'],
-                        'location' => ($job['job_city'] ?? '') . ' ' . ($job['job_state'] ?? ''),
-                        'description' => $job['job_description'],
-                        'thumbnail' => $job['employer_logo'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($job['employer_name']),
-                        'via' => $job['job_publisher'] ?? 'Web',
-                        'job_id' => $job['job_id']
+                        'location'     => trim(($job['job_city'] ?? '') . ' ' . ($job['job_state'] ?? '')),
+                        'description'  => $job['job_description'],
+                        'thumbnail'    => $job['employer_logo'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($job['employer_name']),
+                        'via'          => $job['job_publisher'] ?? 'Web',
+                        'job_id'       => $job['job_id'],
+                        'job_url'      => $job['job_apply_link'] ?? $job['job_google_link'] ?? null,
                     ];
                 }, array_slice($results, 0, 10));
             }
@@ -114,13 +115,14 @@ class JobScraperService
 
                 return array_map(function($res) {
                     return [
-                        'title' => $res['title'],
+                        'title'        => $res['title'],
                         'company_name' => $this->extractCompanyName($res['title']),
-                        'location' => 'Brasil',
-                        'description' => $res['snippet'],
-                        'thumbnail' => 'https://ui-avatars.com/api/?name=JOB',
-                        'via' => parse_url($res['link'], PHP_URL_HOST),
-                        'job_id' => md5($res['link'])
+                        'location'     => 'Brasil',
+                        'description'  => $res['snippet'],
+                        'thumbnail'    => 'https://ui-avatars.com/api/?name=JOB',
+                        'via'          => parse_url($res['link'], PHP_URL_HOST),
+                        'job_id'       => md5($res['link']),
+                        'job_url'      => $res['link'],
                     ];
                 }, array_slice($results, 0, 10));
             }
@@ -151,23 +153,25 @@ class JobScraperService
     {
         return [
             [
-                'title' => $query . ' Senior',
+                'title'        => $query . ' Senior',
                 'company_name' => 'Tech Solutions Corp',
-                'location' => 'São Paulo, SP',
-                'description' => 'Buscamos especialista em ' . $query . ' para projeto escalável.',
-                'thumbnail' => 'https://ui-avatars.com/api/?name=TS&background=0D8ABC&color=fff',
-                'via' => 'LinkedIn',
-                'job_id' => 'mock_1'
+                'location'     => 'São Paulo, SP',
+                'description'  => 'Buscamos especialista em ' . $query . ' para projeto escalável.',
+                'thumbnail'    => 'https://ui-avatars.com/api/?name=TS&background=0D8ABC&color=fff',
+                'via'          => 'LinkedIn',
+                'job_id'       => 'mock_1',
+                'job_url'      => 'https://www.linkedin.com/jobs/',
             ],
             [
-                'title' => 'Especialista ' . $query,
+                'title'        => 'Especialista ' . $query,
                 'company_name' => 'Inovação Digital',
-                'location' => 'Remoto',
-                'description' => 'Oportunidade 100% remota para atuar com ' . $query . ' e nuvem.',
-                'thumbnail' => 'https://ui-avatars.com/api/?name=ID&background=4f46e5&color=fff',
-                'via' => 'Indeed',
-                'job_id' => 'mock_2'
-            ]
+                'location'     => 'Remoto',
+                'description'  => 'Oportunidade 100% remota para atuar com ' . $query . ' e nuvem.',
+                'thumbnail'    => 'https://ui-avatars.com/api/?name=ID&background=4f46e5&color=fff',
+                'via'          => 'Indeed',
+                'job_id'       => 'mock_2',
+                'job_url'      => 'https://br.indeed.com/',
+            ],
         ];
     }
 }

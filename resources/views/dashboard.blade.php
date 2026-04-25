@@ -218,15 +218,23 @@
                             </div>
                         </div>
                         <div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">O Pitch (Preview WhatsApp)</p>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Pitch Gerado pela IA</p>
                             <div class="p-6 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700">
                                 <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 font-medium" x-text="previewData.pitch"></p>
                             </div>
                         </div>
-                        <div class="flex gap-4 pt-4">
+
+                        <!-- Aviso do novo fluxo -->
+                        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl">
+                            <p class="text-[11px] font-bold text-blue-700 dark:text-blue-300 leading-relaxed">
+                                📲 <strong>Como funciona:</strong> Ao confirmar, você receberá este pitch no seu <strong>WhatsApp</strong> e <strong>e-mail</strong> — pronto para copiar e aplicar direto na vaga.
+                            </p>
+                        </div>
+
+                        <div class="flex gap-4 pt-2">
                             <button @click="showPreview = false" class="flex-1 py-5 rounded-2xl border border-gray-200 dark:border-gray-700 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-900 transition">Cancelar</button>
                             <button @click="confirmSend()" class="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition shadow-xl shadow-blue-500/20" :disabled="sending">
-                                <span x-show="!sending">Confirmar e Enviar</span>
+                                <span x-show="!sending">Receber Pitch no WhatsApp & Email</span>
                                 <span x-show="sending">Enviando...</span>
                             </button>
                         </div>
@@ -302,17 +310,27 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                             },
-                            body: JSON.stringify({ 
+                            body: JSON.stringify({
                                 company_name: job.company_name,
                                 title: job.title,
-                                description: job.description
+                                description: job.description,
+                                location: job.location,
+                                via: job.via,
+                                job_url: job.job_url ?? null,
                             })
                         });
-                        
+
                         const data = await response.json();
                         if (data.error) throw new Error(data.error);
 
-                        this.previewData = { ...data, company_name: job.company_name };
+                        this.previewData = {
+                            ...data,
+                            company_name: job.company_name,
+                            title: job.title,
+                            location: job.location,
+                            via: job.via,
+                            job_url: job.job_url ?? null,
+                        };
                         this.showPreview = true;
                     } catch (e) {
                         alert(e.message || 'Erro ao processar análise.');
