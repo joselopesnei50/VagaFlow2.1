@@ -35,6 +35,15 @@ class ContactExtractorService
         $cacheKey = 'contact_' . md5(strtolower($company));
 
         return Cache::remember($cacheKey, now()->addHours(12), function () use ($jobData, $company) {
+            // 0. Contato já veio direto do Google Maps — prioridade máxima
+            if (!empty($jobData['contact_phone']) || !empty($jobData['contact_email'])) {
+                return [
+                    'email'  => $jobData['contact_email'] ?? null,
+                    'phone'  => $jobData['contact_phone'] ?? null,
+                    'source' => 'google_maps',
+                ];
+            }
+
             // 1. Extrair do texto da própria descrição da vaga
             $fromDescription = $this->extractFromText($jobData['description'] ?? '');
             if ($fromDescription['email'] || $fromDescription['phone']) {

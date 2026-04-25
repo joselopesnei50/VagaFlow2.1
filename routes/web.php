@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/cv/analyze', [\App\Http\Controllers\CvController::class, 'analyze'])->name('cv.analyze');
     Route::post('/cv/send', [\App\Http\Controllers\CvController::class, 'send'])->name('cv.send');
     Route::post('/cv/autopilot', [\App\Http\Controllers\CvController::class, 'autopilot'])->name('cv.autopilot');
+    Route::get('/cv/search-maps', [\App\Http\Controllers\CvController::class, 'searchByMaps'])->name('cv.search.maps');
 });
 
 // Admin Routes

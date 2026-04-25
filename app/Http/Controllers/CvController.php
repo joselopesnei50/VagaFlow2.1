@@ -129,6 +129,20 @@ class CvController extends Controller
         return response()->json(['error' => 'Erro ao enviar.'], 500);
     }
 
+    /**
+     * Busca empresas pelo Google Maps para prospecção direta.
+     */
+    public function searchByMaps(Request $request)
+    {
+        $user    = auth()->user();
+        $sector  = $request->input('sector', $user->profile->target_role ?? 'Tecnologia');
+        $city    = $request->input('city', 'São Paulo');
+
+        $companies = $this->scraper->searchCompaniesByMaps($sector, $city);
+
+        return response()->json($companies);
+    }
+
     public function autopilot(Request $request)
     {
         $user = auth()->user();

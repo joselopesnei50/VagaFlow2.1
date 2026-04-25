@@ -28,41 +28,41 @@
         <!-- Metric Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Revenue Card -->
-            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-500">
+            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-500">
                 <div class="flex justify-between items-start mb-6">
                     <span class="text-green-500 text-[10px] font-black uppercase tracking-widest">+12.5% Crescimento</span>
                 </div>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Receita Global</p>
+                <p class="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-1">Receita Global</p>
                 <h3 class="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tighter">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</h3>
                 <div class="h-10 w-full"><canvas id="miniChartRevenue"></canvas></div>
             </div>
 
             <!-- Users Card -->
-            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-500">
+            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-500">
                 <div class="flex justify-between items-start mb-6">
                     <span class="text-blue-500 text-[10px] font-black uppercase tracking-widest">Base de Dados</span>
                 </div>
-                <p class="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-1">Candidatos Ativos</p>
+                <p class="text-[10px] font-black text-gray-600 dark:text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-1">Candidatos Ativos</p>
                 <h3 class="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tighter">{{ $stats['total_users'] }}</h3>
                 <div class="h-10 w-full"><canvas id="miniChartUsers"></canvas></div>
             </div>
 
             <!-- Conversion Card -->
-            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-500">
+            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-500">
                 <div class="flex justify-between items-start mb-6">
                     <span class="text-amber-500 text-[10px] font-black uppercase tracking-widest">Conversão</span>
                 </div>
-                <p class="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-1">Taxa Premium</p>
+                <p class="text-[10px] font-black text-gray-600 dark:text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-1">Taxa Premium</p>
                 <h3 class="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tighter">{{ $stats['total_users'] > 0 ? round(($stats['premium_users'] / $stats['total_users']) * 100, 1) : 0 }}%</h3>
                 <div class="h-10 w-full"><canvas id="miniChartConv"></canvas></div>
             </div>
 
             <!-- AI Dispatches Today -->
-            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-500">
+            <div class="group bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-500">
                 <div class="flex justify-between items-start mb-6">
                     <span class="text-indigo-500 text-[10px] font-black uppercase tracking-widest">Tempo Real</span>
                 </div>
-                <p class="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-1">Envios Hoje</p>
+                <p class="text-[10px] font-black text-gray-600 dark:text-gray-600 dark:text-gray-400 uppercase tracking-widest mb-1">Envios Hoje</p>
                 <h3 class="text-3xl font-black text-gray-900 dark:text-white mb-4 tracking-tighter">{{ $stats['total_today'] }}</h3>
                 <div class="h-10 w-full"><canvas id="miniChartToday"></canvas></div>
             </div>
@@ -70,7 +70,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Main Analysis Chart -->
-            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-100 dark:border-gray-700">
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-200 dark:border-gray-700">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
                     <div>
                         <h3 class="text-xl font-black tracking-tight uppercase leading-none">Análise de Crescimento</h3>
@@ -85,11 +85,11 @@
             <!-- Side Panels -->
             <div class="space-y-8">
                 <!-- Recent Activity -->
-                <div class="bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-black mb-8 uppercase tracking-tighter">Últimos Pagamentos</h3>
                     <div class="space-y-8">
                         @foreach($stats['recent_payments'] as $payment)
-                            <div class="flex items-center justify-between group cursor-pointer border-b border-gray-50 dark:border-gray-700 pb-4">
+                            <div class="flex items-center justify-between group cursor-pointer border-b border-gray-200 dark:border-gray-700 pb-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-900 dark:text-white font-black text-xs">
                                         {{ substr($payment->user->name, 0, 1) }}
@@ -112,11 +112,11 @@
                 </div>
 
                 <!-- Recent Candidates -->
-                <div class="bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-black mb-8 uppercase tracking-tighter">Últimos Candidatos</h3>
                     <div class="space-y-8">
                         @foreach($stats['recent_users'] as $u)
-                            <div class="flex items-center justify-between group cursor-pointer border-b border-gray-50 dark:border-gray-700 pb-4">
+                            <div class="flex items-center justify-between group cursor-pointer border-b border-gray-200 dark:border-gray-700 pb-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-900 dark:text-white font-black text-xs">
                                         {{ substr($u->name, 0, 1) }}
@@ -156,11 +156,11 @@
                 </div>
 
                 <!-- Search Logs (Monitoring) -->
-                <div class="bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="bg-white dark:bg-gray-800 p-10 rounded-[3rem] shadow-sm border border-gray-200 dark:border-gray-700">
                     <h3 class="text-lg font-black mb-8 uppercase tracking-tighter">Monitoramento de APIs</h3>
                     <div class="space-y-6">
                         @foreach($stats['recent_logs'] as $log)
-                            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700">
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-[8px] font-black uppercase tracking-widest {{ $log->status === 'success' ? 'text-green-500' : 'text-red-500' }}">
                                         {{ $log->service }} - {{ $log->status }}

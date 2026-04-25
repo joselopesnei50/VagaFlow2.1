@@ -10,11 +10,21 @@ class JobScraperService
 {
     protected $serperKey;
     protected $jsearchKey;
+    protected $mapsService;
 
     public function __construct()
     {
-        $this->serperKey = get_setting('serper_api_key');
-        $this->jsearchKey = get_setting('jsearch_api_key'); // RapidAPI Key
+        $this->serperKey  = get_setting('serper_api_key');
+        $this->jsearchKey = get_setting('jsearch_api_key');
+        $this->mapsService = new GoogleMapsService();
+    }
+
+    /**
+     * Busca empresas diretamente pelo Google Maps (prospecção direta).
+     */
+    public function searchCompaniesByMaps(string $sector, string $city = 'São Paulo'): array
+    {
+        return $this->mapsService->searchCompanies($sector, $city);
     }
 
     /**
