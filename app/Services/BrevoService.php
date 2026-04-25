@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -16,78 +17,85 @@ class BrevoService
     }
 
     /**
-     * Email genérico.
+     * E-mail de candidatura enviado PARA O RH DA EMPRESA.
+     * Remetente: sistema (domínio verificado no Brevo)
+     * Reply-To: e-mail do candidato (para o recrutador responder direto para ele)
      */
-    public function sendEmail($toEmail, $toName, $subject, $contentHtml)
-    {
-        return $this->send($toEmail, $toName, $subject, $contentHtml);
+    public function sendApplicationEmail(
+        string  $hrEmail,
+        string  $company,
+        string  $subject,
+        string  $body,
+        User    $candidate,
+        ?string $cvUrl = null
+    ): bool {
+        $senderEmail = get_setting('brevo_sender_email') ?: env('BREVO_SENDER_EMAIL', 'vagas@jobbot.ai');
+        $senderName  = get_setting('brevo_sender_name')  ?: config('app.name', 'JobBot AI');
+
+        $bodyHtml = $this->buildApplicationHtml($body, $candidate, $cvUrl);
+
+        $payload = [
+            'sender'  => ['name' => $candidate->name . ' via ' . $senderName, 'email' => $senderEmail],
+            'to'      => [['email' => $hrEmail, 'name' => 'Recrutador(a) ' . $company]],
+            'replyTo' => ['email' => $candidate->email, 'name' => $candidate->name],
+            'subject' => $subject,
+            'htmlContent' => $bodyHtml,
+        ];
+
+        return $this->send($payload);
     }
 
     /**
-     * Email de alerta de vaga — entrega o pitch pronto para o usuário.
+     * E-mail genérico (notificações internas, confirmação de pagamento, etc.)
      */
-    public function sendJobAlertEmail($user, array $jobData, array $aiData)
+    public function sendEmail(string $toEmail, string $toName, string $subject, string $contentHtml): bool
     {
-        $jobUrl   = $jobData['job_url'] ?? null;
-        $applyBtn = $jobUrl
-            ? "<a href='{$jobUrl}' style='display:inline-block;background:#2563eb;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;'>Aplicar na Vaga</a>"
+        $senderEmail = get_setting('brevo_sender_email') ?: env('BREVO_SENDER_EMAIL', 'noreply@jobbot.ai');
+        $senderName  = get_setting('brevo_sender_name')  ?: config('app.name', 'JobBot AI');
+
+        return $this->send([
+            'sender'      => ['name' => $senderName, 'email' => $senderEmail],
+            'to'          => [['email' => $toEmail, 'name' => $toName]],
+            'subject'     => $subject,
+            'htmlContent' => $contentHtml,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function buildApplicationHtml(string $body, User $candidate, ?string $cvUrl): string
+    {
+        $bodyHtml   = nl2br(htmlspecialchars($body));
+        $cvSection  = $cvUrl
+            ? "<p style='margin:24px 0 0;'>
+                 <a href='{$cvUrl}' style='display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;
+                    border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;'>
+                   📄 Baixar Currículo
+                 </a>
+               </p>"
             : '';
 
-        $pitchEscaped = nl2br(htmlspecialchars($aiData['pitch']));
-
-        $html = "
-        <div style='font-family:Inter,Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;padding:32px 16px;'>
-            <div style='background:#1e40af;color:#fff;border-radius:16px 16px 0 0;padding:32px;text-align:center;'>
-                <h1 style='margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px;'>🎯 JobBot AI — Nova Vaga!</h1>
-                <p style='margin:8px 0 0;opacity:.8;font-size:13px;'>{$user->name}, encontramos uma oportunidade para você</p>
+        return "
+        <div style='font-family:Inter,Arial,sans-serif;max-width:640px;margin:0 auto;'>
+            <div style='padding:32px 32px 24px;'>
+                <p style='font-size:15px;line-height:1.7;color:#1e293b;white-space:pre-line;'>{$bodyHtml}</p>
+                {$cvSection}
+                <hr style='margin:32px 0;border:none;border-top:1px solid #e2e8f0;'>
+                <p style='font-size:13px;color:#64748b;'>
+                    <strong>{$candidate->name}</strong><br>
+                    <a href='mailto:{$candidate->email}' style='color:#2563eb;'>{$candidate->email}</a>
+                </p>
             </div>
-
-            <div style='background:#fff;border-radius:0 0 16px 16px;padding:32px;'>
-                <!-- Vaga -->
-                <div style='background:#f1f5f9;border-radius:12px;padding:20px;margin-bottom:24px;'>
-                    <p style='margin:0 0 4px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#64748b;'>Vaga</p>
-                    <h2 style='margin:0;font-size:18px;font-weight:900;color:#0f172a;'>{$jobData['title']}</h2>
-                    <p style='margin:4px 0 0;font-size:14px;color:#475569;font-weight:600;'>{$jobData['company_name']} &nbsp;·&nbsp; {$jobData['location']}</p>
-                    <p style='margin:4px 0 0;font-size:12px;color:#94a3b8;'>via {$jobData['via']}</p>
-                    {$applyBtn}
-                </div>
-
-                <!-- Pitch -->
-                <p style='margin:0 0 8px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#64748b;'>💬 Seu Pitch (copie e envie ao recrutar)</p>
-                <div style='background:#eff6ff;border:2px solid #bfdbfe;border-radius:12px;padding:20px;margin-bottom:24px;'>
-                    <p style='margin:0;font-size:15px;line-height:1.6;color:#1e40af;font-weight:500;'>{$pitchEscaped}</p>
-                </div>
-
-                <!-- Estratégia -->
-                <div style='display:flex;gap:16px;margin-bottom:24px;'>
-                    <div style='flex:1;background:#f0fdf4;border-radius:12px;padding:16px;text-align:center;'>
-                        <p style='margin:0 0 4px;font-size:10px;font-weight:900;text-transform:uppercase;color:#16a34a;letter-spacing:.1em;'>Compatibilidade</p>
-                        <p style='margin:0;font-size:28px;font-weight:900;color:#15803d;'>{$aiData['match']}%</p>
-                    </div>
-                    <div style='flex:2;background:#faf5ff;border-radius:12px;padding:16px;'>
-                        <p style='margin:0 0 4px;font-size:10px;font-weight:900;text-transform:uppercase;color:#7c3aed;letter-spacing:.1em;'>Estratégia da IA</p>
-                        <p style='margin:0;font-size:13px;color:#6d28d9;font-style:italic;'>\"{$aiData['strategy']}\"</p>
-                    </div>
-                </div>
-
-                <p style='margin:0;font-size:12px;color:#94a3b8;text-align:center;'>
-                    Acompanhe todas as suas candidaturas no <a href='" . route('dashboard') . "' style='color:#2563eb;'>painel JobBot AI</a>.
+            <div style='background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;'>
+                <p style='margin:0;font-size:11px;color:#94a3b8;'>
+                    Candidatura enviada via <strong>JobBot AI</strong>.
+                    Para responder, utilize o e-mail do candidato acima.
                 </p>
             </div>
         </div>";
-
-        return $this->send(
-            $user->email,
-            $user->name,
-            "🎯 [{$aiData['match']}% Match] {$jobData['title']} — {$jobData['company_name']}",
-            $html
-        );
     }
 
-    /**
-     * Método interno de envio.
-     */
-    private function send($toEmail, $toName, $subject, $contentHtml)
+    private function send(array $payload): bool
     {
         if (!$this->apiKey) {
             Log::warning('Brevo: API key não configurada.');
@@ -95,25 +103,18 @@ class BrevoService
         }
 
         try {
-            $senderEmail = get_setting('brevo_sender_email') ?: ('noreply@' . config('app.name', 'jobbot') . '.ai');
-            $senderName  = get_setting('brevo_sender_name')  ?: config('app.name', 'JobBot AI');
-
             $response = Http::withHeaders([
                 'api-key'      => $this->apiKey,
                 'content-type' => 'application/json',
                 'accept'       => 'application/json',
-            ])->post("{$this->baseUrl}/smtp/email", [
-                'sender'      => ['name' => $senderName, 'email' => $senderEmail],
-                'to'          => [['email' => $toEmail, 'name' => $toName]],
-                'subject'     => $subject,
-                'htmlContent' => $contentHtml,
-            ]);
+            ])->post("{$this->baseUrl}/smtp/email", $payload);
 
             if (!$response->successful()) {
                 Log::error('Brevo send error: ' . $response->body());
+                return false;
             }
 
-            return $response->successful();
+            return true;
         } catch (\Exception $e) {
             Log::error('Brevo exception: ' . $e->getMessage());
             return false;

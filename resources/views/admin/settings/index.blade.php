@@ -28,7 +28,7 @@
 
                         <!-- Evolution API -->
                         <div class="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-[2rem] border border-gray-100 dark:border-gray-700">
-                            <h3 class="text-xs font-black mb-6 uppercase tracking-widest text-green-600">WhatsApp (Evolution)</h3>
+                            <h3 class="text-xs font-black mb-6 uppercase tracking-widest text-green-600">WhatsApp (Evolution API)</h3>
                             <div class="space-y-6">
                                 <div>
                                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Base URL</label>
@@ -39,6 +39,12 @@
                                     <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Global API Key</label>
                                     <input type="password" name="evolution_api_key" value="{{ $settings['evolution_api_key'] ?? '' }}"
                                         class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-green-500 shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nome da Instância do Sistema</label>
+                                    <input type="text" name="evolution_system_instance" value="{{ $settings['evolution_system_instance'] ?? 'jobbot_system' }}" placeholder="jobbot_system"
+                                        class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-green-500 shadow-inner">
+                                    <p class="text-[10px] text-gray-400 mt-2 px-1">Nome da instância conectada no Evolution API (o número que dispara as mensagens para recrutadores e confirma envios para candidatos).</p>
                                 </div>
                             </div>
                         </div>
@@ -115,14 +121,6 @@
                             </div>
                         </div>
 
-                        <!-- Evolution — Instância do Sistema -->
-                        <div class="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-[2rem] border border-gray-100 dark:border-gray-700">
-                            <h3 class="text-xs font-black mb-6 uppercase tracking-widest text-green-600">WhatsApp — Instância do Sistema</h3>
-                            <p class="text-[10px] text-gray-400 mb-6 leading-relaxed">A instância <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded">jobbot_system</code> deve estar criada e conectada no seu Evolution API. É o número que envia os pitches para os usuários.</p>
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Número do WhatsApp da Instância (somente números)</label>
-                            <input type="text" name="system_whatsapp_number" value="{{ $settings['system_whatsapp_number'] ?? '' }}" placeholder="5511999999999"
-                                class="w-full bg-white dark:bg-gray-800 border-none rounded-xl p-4 text-sm focus:ring-2 focus:ring-green-500 shadow-inner">
-                        </div>
 
                         <!-- Legal Pages -->
                         <div class="p-8 bg-gray-50 dark:bg-gray-900/50 rounded-[2rem] border border-gray-100 dark:border-gray-700 col-span-1 md:col-span-2">

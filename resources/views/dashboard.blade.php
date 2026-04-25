@@ -224,17 +224,17 @@
                             </div>
                         </div>
 
-                        <!-- Aviso do novo fluxo -->
+                        <!-- Como funciona -->
                         <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl">
                             <p class="text-[11px] font-bold text-blue-700 dark:text-blue-300 leading-relaxed">
-                                📲 <strong>Como funciona:</strong> Ao confirmar, você receberá este pitch no seu <strong>WhatsApp</strong> e <strong>e-mail</strong> — pronto para copiar e aplicar direto na vaga.
+                                🚀 <strong>Como funciona:</strong> A IA localiza o e-mail e WhatsApp do RH e dispara sua candidatura diretamente para a empresa. Você recebe uma confirmação no WhatsApp.
                             </p>
                         </div>
 
                         <div class="flex gap-4 pt-2">
                             <button @click="showPreview = false" class="flex-1 py-5 rounded-2xl border border-gray-200 dark:border-gray-700 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-900 transition">Cancelar</button>
                             <button @click="confirmSend()" class="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition shadow-xl shadow-blue-500/20" :disabled="sending">
-                                <span x-show="!sending">Receber Pitch no WhatsApp & Email</span>
+                                <span x-show="!sending">Disparar Candidatura para Empresa</span>
                                 <span x-show="sending">Enviando...</span>
                             </button>
                         </div>
